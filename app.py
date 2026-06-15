@@ -2,24 +2,22 @@ import os
 from flask import Flask, render_template,request,redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
-from datetime import datetime
+from datetime import datetime,timezone
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+
+db_url = os.environ.get('DATABASE_URL')
+if db_url and db_url.startswith('postgres://'):
+    db_url = db_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
-@app.route('/init_db')
-def init_db():
-    with app.app_context():
-        db.create_all()
-    return "Database initialized!"
-
 
 class Todo(db.Model):
     sno = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(500), nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    date_created = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
   
     def __repr__(self) -> str:
         return f"{self.sno} - {self.title}"
