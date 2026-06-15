@@ -9,7 +9,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 with app.app_context():
-     db.create_all()
+     try:
+        db.create_all()
+        print("Creating database initialized")
+     except Exception as e:
+      print(f"Error during initialization: {e}")
 
 class Todo(db.Model):
     sno = db.Column(db.Integer, primary_key=True)
