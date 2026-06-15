@@ -8,12 +8,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-with app.app_context():
-     try:
+@app.route('/init_db')
+def init_db():
+    with app.app_context():
         db.create_all()
-        print("Creating database initialized")
-     except Exception as e:
-      print(f"Error during initialization: {e}")
+    return "Database initialized!"
+
 
 class Todo(db.Model):
     sno = db.Column(db.Integer, primary_key=True)
