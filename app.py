@@ -47,6 +47,14 @@ class Todo(db.Model):
     def __repr__(self) -> str:
         return f"{self.sno} - {self.title}"
 
+@app.route('/toggle/<int:sno>')
+@login_required
+def toggle_done(sno):
+    todo = Todo.query.filter(Todo.sno == sno, Todo.user_id == current_user.id).first_or_404()
+    todo.done = not todo.done
+    db.session.commit()
+    return redirect('/')
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
