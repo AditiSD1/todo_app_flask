@@ -7,6 +7,12 @@ from sqlalchemy import or_
 from datetime import datetime,timezone
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user  
 from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
+load_dotenv()
 app = Flask(__name__)
 
 db_url = os.environ.get('DATABASE_URL','sqlite:///todo.db')
@@ -46,6 +52,40 @@ class Todo(db.Model):
 
     def __repr__(self) -> str:
         return f"{self.sno} - {self.title}"
+
+EMAIL_ADDRESS = os.environ.get('EMAIL_ADDRESS')
+EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD')
+
+
+def send_email(to_address, subject, body):
+    msg = MIMEMultipart()
+    msg['From'] = EMAIL_ADDRESS
+    msg['To'] = to_address
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        server.starttls()
+        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+        server.send_message(msg)
+
+
+def send_pending_task_reminders():
+    users = User.query.all()
+    sent_count = 0
+    for user in users:
+        pending_tasks = Todo.query.filter_by(user_id=user.id, done=False).all()
+        if not pending_tasks:
+            continue
+
+        task_list = "\n".join(f"- {t.title}: {t.description}" for t in pending_tasks)
+        body = f"Hi {user.username},\n\nYou have {len(pending_tasks)} pending task(s) today:\n\n{task_list}\n\nKeep going!"
+        subject = f"You have {len(pending_tasks)} pending task(s) today"
+
+        send_email(user.email, subject, body)
+        sent_count += 1
+        print(f"Reminder sent to {user.email}")
+    return sent_count
 
 @app.route('/toggle/<int:sno>')
 @login_required
@@ -139,6 +179,21 @@ def delete(sno):
     db.session.delete(todo)
     db.session.commit()
     return redirect('/')
+
+@app.route('/run-task-reminder')
+def run_task_reminder():
+    secret = request.args.get('key')
+    if secret != os.environ.get('CRON_SECRET'):
+        return "Unauthorized", 403
+    count = send_pending_task_reminders()
+    return f"Reminders sent to {count} users", 200
+
+@app.route('/trigger_email_reminders')
+@login_required
+def trigger_email_reminders():
+    from automation_report import send_pending_task_reminders
+    send_pending_task_reminders()
+    return "Email reminders triggered!"
 
 # GET all tasks
 @app.route('/api/tasks', methods=['GET'])

@@ -30,6 +30,7 @@
       <th scope="col">Title</th>
       <th scope="col">Description</th>
       <th scope="col">Date Created</th>
+      <th scope="col">Done</th> 
       <th scope="col">Actions</th>
      </tr>
      </thead>
@@ -40,6 +41,10 @@
           <td>{{ todo.title }}</td>
           <td>{{ todo.description }}</td>
           <td>{{ todo.date_created }}</td>
+          <td>
+  <input type="checkbox" {% if todo.done %}checked{% endif %}
+         onclick="window.location.href='{{ url_for('toggle_done', sno=todo.sno) }}'">
+          </td>
         <td>
           <a href="/delete/{{ todo.sno }}" class="btn btn-sm btn-danger mx-1">Delete</button>
           <a href="/update/{{ todo.sno }}" class="btn btn-sm btn-dark mx-1">Update</button>
@@ -49,10 +54,6 @@
      </table>
     {% endif %}
 </div>
-    
- 
-
-
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
