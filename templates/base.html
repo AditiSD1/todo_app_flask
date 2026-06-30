@@ -23,16 +23,22 @@
       <li class="nav-item active">
         <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
       </li>
-
     </ul>
+    {% if current_user.is_authenticated %}
     <form action="/" method="GET" class="form-inline my-2 my-lg-0">
       <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="query">
       <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
     </form>
+    {% endif %}
+    {% if current_user.is_authenticated %}
+      <span class="navbar-text mr-3">Hi, {{ current_user.username }}!</span>
+      <a class="btn btn-outline-danger my-2 my-sm-0" href="/logout">Logout</a>
+      {% elif request.endpoint !='login' %}
+      <a class="btn btn-outline-primary my-2 my-sm-0" href="/login">Login</a>
+      {% endif %}
   </div>
 </nav>
     {% block body %}
-        
     {% endblock body %}
       </body>
 </html>
