@@ -21,7 +21,9 @@ if db_url and db_url.startswith('postgres://'):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+db= SQLAlchemy(app)
+from flask_migrate import Migrate
+migrate = Migrate(app, db)
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -200,10 +202,10 @@ def trigger_email_reminders():
 @login_required
 def api_get_tasks():
     tasks = Todo.query.filter(Todo.user_id == current_user.id).all()
-    return jsonify([
+    return jsonify(
         {"id": t.sno, "title": t.title, "description": t.description, "done": t.done}
         for t in tasks
-    ])
+    )
 
 # GET single task
 @app.route('/api/tasks/<int:task_id>', methods=['GET'])
